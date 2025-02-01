@@ -57,7 +57,7 @@ def search(request):
 def create(request):
     url = reverse("contact:create")
     if request.method == "POST":
-        form = ContactForm(request.POST)
+        form = ContactForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
             return redirect("contact:index")
@@ -75,7 +75,7 @@ def update(request, contact_id):
     url = reverse("contact:update", kwargs={"contact_id": contact_id})
     contact_obj = get_object_or_404(Contact, pk=contact_id, show=True)
     if request.method == "POST":
-        form = ContactForm(request.POST, instance=contact_obj)
+        form = ContactForm(request.POST, request.FILES, instance=contact_obj)
         if form.is_valid():
             form.save()
             return redirect("contact:index")

@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 class ContactForm(forms.ModelForm):
     class Meta:
         model = Contact
-        fields = ("first_name", "last_name", "phone", "email", "description", "category")
+        fields = ("first_name", "last_name", "phone", "email", "description", "category", "picture")
         labels = {
             'first_name': 'Primeiro Nome',
             'last_name': 'Sobrenome',
@@ -13,6 +13,7 @@ class ContactForm(forms.ModelForm):
             'email': 'E-mail',
             'description': 'Descrição',
             'category': 'Categoria',
+            "picture": "Foto"
         }
     
     def clean(self):
