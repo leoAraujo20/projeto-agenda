@@ -2,8 +2,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
 from contact.models import Contact
 from django.core.paginator import Paginator
-from django import forms
 from contact.forms import ContactForm
+from django.urls import reverse
 
 # Create your views here.
 def index(request):
@@ -55,6 +55,7 @@ def search(request):
     return render(request, "contact/index.html", context=context)
 
 def create(request):
+    url = reverse("contact:create")
     if request.method == "POST":
         form = ContactForm(request.POST)
         if form.is_valid():
@@ -64,7 +65,32 @@ def create(request):
         form = ContactForm()
     
     context = {
+        "url": url,
         "form": form,
         "page_title": "Criar contato"
     }
     return render(request, 'contact/create.html', context)
+
+def update(request, contact_id):
+    url = reverse("contact:update", kwargs={"contact_id": contact_id})
+    contact_obj = get_object_or_404(Contact, pk=contact_id, show=True)
+    if request.method == "POST":
+        form = ContactForm(request.POST, instance=contact_obj)
+        if form.is_valid():
+            form.save()
+            return redirect("contact:index")
+    else:
+        form = ContactForm(instance=contact_obj)
+    
+    context = {
+        "url": url,
+        "form": form,
+        "page_title": "Atualizar contato"
+    }
+
+    return render(request, "contact/create.html", context)
+
+def delete(request, contact_id):
+    contact_obj = get_object_or_404(Contact, pk=contact_id)
+    contact_obj.delete()
+    return redirect("contact:index")
