@@ -1,6 +1,8 @@
 from django import forms
 from contact.models import Contact
 from django.core.exceptions import ValidationError
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.models import User
 
 class ContactForm(forms.ModelForm):
     class Meta:
@@ -25,3 +27,22 @@ class ContactForm(forms.ModelForm):
             self.add_error(None, "Primeiro nome não pode ser igual ao sobrenome")
         
         return cleaned_data
+
+class UserRegisterForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ("first_name", "last_name", "username", "email", "password1", "password2",)
+        labels = {
+            "last_name": "Sobrenome",
+        }
+    
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        
+        if User.objects.filter(email=email).exists():
+            self.add_error("email", ValidationError("Este e-mail já está em uso"))
+        
+        return email
+
+class UserLoginForm(AuthenticationForm):
+    pass

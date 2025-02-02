@@ -2,8 +2,10 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
 from contact.models import Contact
 from django.core.paginator import Paginator
-from contact.forms import ContactForm
+from contact.forms import ContactForm, UserRegisterForm, UserLoginForm
 from django.urls import reverse
+from django.contrib.auth import login, logout
+from django.contrib import messages
 
 # Create your views here.
 def index(request):
@@ -93,4 +95,48 @@ def update(request, contact_id):
 def delete(request, contact_id):
     contact_obj = get_object_or_404(Contact, pk=contact_id)
     contact_obj.delete()
+    return redirect("contact:index")
+
+def create_user(request):
+    url = reverse("contact:create_user")
+    if request.method == "POST":
+        form = UserRegisterForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Usuário criado com sucesso")
+            return redirect("contact:index")
+    else:
+        form = UserRegisterForm()
+
+    context = {
+        "url": url,
+        "form": form,
+        "page_title": "Criar usuário"
+    }
+
+    return render(request, "user/create.html", context)
+
+def login_user(request):
+    url = reverse("contact:login_user")
+    if request.method == "POST":
+        form = UserLoginForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            messages.success(request, "Login realizado com sucesso!")
+            return redirect("contact:index")
+    else:
+        form = UserLoginForm()
+
+    context = {
+        "url": url,
+        "form": form,
+        "page_title": "Logar com usuário"
+    }
+
+    return render(request, "user/login.html", context)
+
+def logout_user(request):
+    logout(request)
+    messages.success(request, "Logout realizado com sucesso!")
     return redirect("contact:index")
