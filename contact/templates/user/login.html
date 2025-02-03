@@ -2,39 +2,12 @@
 {% extends "global/base.html" %} {% block content %}
 <div class="form-wrapper">
     {% if user.is_authenticated %}
-    <h2>Bem-vindo, {{ user.username }}!</h2>
-    <p>Você já está logado.</p>
-    <a href="{% url "contact:logout_user" %}">Sair</a>
+        <h2>Bem-vindo, {{ user.username }}!</h2>
+        <p>Você já está logado.</p>
+        <a href="{% url "contact:logout_user" %}">Sair</a>
     {% else %}
-    <h2>Login</h2>
-    <form action="{{ url }}" method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-
-        <div class="form-content">
-            {% for field in form %}
-            <div class="form-group">
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }} {{ field.errors }} {% if field.help_text %}
-                <p class="help-text">{{ field.help_text }}</p>
-                {% endif %}
-            </div>
-            {% endfor %}
-        </div>
-
-        {% if form.non_field_errors %}
-        <div class="form-content">
-            <div class="form-group">
-                <div class="message error">{{ form.non_field_errors }}</div>
-            </div>
-        </div>
-        {% endif %}
-
-        <div class="form-content">
-            <div class="form-group">
-                <button class="btn" type="submit">Login</button>
-            </div>
-        </div>
-    </form>
+        <h2>Login</h2>
+        {% include "global/partials/form.html" %}
     {% endif %}
 </div>
 {% endblock content %}

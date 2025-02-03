@@ -2,14 +2,17 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
 from contact.models import Contact
 from django.core.paginator import Paginator
-from contact.forms import ContactForm, UserRegisterForm, UserLoginForm
+from contact.forms import ContactForm, UserRegisterForm, UserLoginForm, UserUpdateForm
 from django.urls import reverse
 from django.contrib.auth import login, logout
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
+
+@login_required(login_url="contact:login_user")
 def index(request):
-    contacts = Contact.objects.filter(show=True).order_by("-id")
+    contacts = Contact.objects.filter(show=True, owner=request.user).order_by("-id")
     
     paginator = Paginator(contacts, 10)
     page_number = request.GET.get("page")
@@ -56,12 +59,15 @@ def search(request):
     
     return render(request, "contact/index.html", context=context)
 
+@login_required(login_url="contact:login_user")
 def create(request):
     url = reverse("contact:create")
     if request.method == "POST":
         form = ContactForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            contact = form.save(commit=False)
+            contact.owner = request.user
+            contact.save()
             return redirect("contact:index")
     else:
         form = ContactForm()
@@ -73,6 +79,7 @@ def create(request):
     }
     return render(request, 'contact/create.html', context)
 
+@login_required(login_url="contact:login_user")
 def update(request, contact_id):
     url = reverse("contact:update", kwargs={"contact_id": contact_id})
     contact_obj = get_object_or_404(Contact, pk=contact_id, show=True)
@@ -92,6 +99,7 @@ def update(request, contact_id):
 
     return render(request, "contact/create.html", context)
 
+@login_required(login_url="contact:login_user")
 def delete(request, contact_id):
     contact_obj = get_object_or_404(Contact, pk=contact_id)
     contact_obj.delete()
@@ -136,7 +144,30 @@ def login_user(request):
 
     return render(request, "user/login.html", context)
 
+@login_required(login_url="contact:login_user")
 def logout_user(request):
     logout(request)
     messages.success(request, "Logout realizado com sucesso!")
     return redirect("contact:index")
+
+@login_required(login_url="contact:login_user")
+def update_user(request):
+    url = reverse("contact:update_user")
+
+    if request.method == "POST":
+        form = UserUpdateForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Dados atualizados com sucesso!")
+            return redirect("contact:index")
+    else:
+        form = UserUpdateForm(instance=request.user)
+
+    context = {
+        "url": url,
+        "form": form,
+        "page_title": "Atualizar Usuário"
+    }
+
+    return render(request, "user/update.html", context)
+
